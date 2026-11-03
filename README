@@ -1,0 +1,21 @@
+# Fast Cooking
+
+App to make your dishes fast and tasty, starting with Peruvian cuisine
+
+## Goal
+
+Built without frameworks to gain a deep understanding of how Java backend applications work: sockets, HTTP, routing, JSON, JDBC, and security.
+
+
+## Rules 
+
+- Allowed: the JDK, a JDBC driver, JUnit for tests, and Maven as the build tool.
+- Not allowed: Spring, Jackson, Hibernate, Lombok, or any library that hides the layer being learned.
+
+## Architecture 
+
+Coming soon. The diagram will be added and updated as the project grows.
+
+## How to run
+
+Coming soon.
