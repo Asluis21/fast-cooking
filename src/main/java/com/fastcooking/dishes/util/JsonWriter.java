@@ -1,6 +1,8 @@
 package com.fastcooking.dishes.util;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -14,71 +16,168 @@ public class JsonWriter {
         if (element == null) return "null";
 
         if (element instanceof Boolean) {
-            return (String)element;
+            return formatBoolean(element);
         }
 
         if (element instanceof Number number) {
-            if (Double.isFinite(number.doubleValue()) && !Double.isNaN(number.doubleValue())) {
-                return number.toString();
-            }
+            return formatNumber(number);
         }
 
         if (element instanceof String text) {
-
-            StringBuilder sb = new StringBuilder();
-
-                sb.append('"');
-                for(char c : text.toCharArray()){
-                    if(c == '\"') continue;
-                    else if(c == '\\') continue;
-                    else if(c == '\\') continue;
-                    else if(c == '\n') continue;
-                    else if(c == '\r') continue;
-                    else if(c == '\t') continue;
-                    else if(c == '\b') continue;
-                    else if(c == '\f') continue;
-                }
-                sb.append('"');
-
-            return sb.toString();
+            return formatString(text);
         }
 
         if(element instanceof Collection<?> elementCollection){
-
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("[");
-
-            sb.append(
-                elementCollection.stream()
-                    .map(o -> toJson(o))
-                    .collect(Collectors.joining(","))
-            );
-
-            sb.append("]");
+            return formatCollection(elementCollection);
+        }
+        
+        if(element.getClass().isArray()){
+            return formatArray(element);
         }
 
         if(element instanceof Map<?,?> elementMap){
-            
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("{");
-
-            int itemNum = 0;
-            for(Entry<?,?> entry : elementMap.entrySet()){
-
-                if(itemNum != 0) sb.append(",");
-                sb.append(toJson(entry.getKey()));
-                sb.append(":");
-                sb.append(toJson(entry.getValue()));   
-                sb.append("\n");
-
-                itemNum++;
-            }
-
-            sb.append("}");
+            return formatMap(elementMap);
         }
 
         throw new InvalidTypeException("Invalid Type");
     }
+
+    private String formatBoolean(Object boolObject){
+        return boolObject.toString();
+    }
+  
+    private String formatNumber(Number num){
+        if (Double.isFinite(num.doubleValue()) && !Double.isNaN(num.doubleValue())) {
+            return num.toString();
+        }
+
+        throw new InvalidTypeException("Invalid Type");
+    }
+
+    private String formatArray(Object objectArray){
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("[");
+
+        int arrayLenght = Array.getLength(objectArray);
+
+        for (int i = 0; i < arrayLenght; i++) {
+            if(i != 0) sb.append(", ");
+            sb.append(toJson(Array.get(objectArray, i)));
+        }
+
+        sb.append("]");
+
+        return sb.toString();
+    }
+
+    private String formatCollection(Collection<?> c){
+            
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("[");
+
+        sb.append(
+            c.stream()
+                .map(o -> toJson(o))
+                .collect(Collectors.joining(", "))
+        );
+
+        sb.append("]");
+
+        return sb.toString();
+    }
+
+    private String formatString(String text){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append('"');
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            switch (c) {
+                
+                // Make coma character (") into a special symbol -> Name: \"Carlos
+                case '"': sb.append("\\\""); break;
+                
+                /** 
+                 * Tab Name:\tCarlos
+                 * Result:
+                 * Name:    Carlos
+                */
+                case '\t':
+                
+                case '\\':
+                /**
+                 * Line feed: "Hello\nWorld" 
+                 * Result:
+                 * Hello 
+                 * World
+                 * 
+                */
+                case '\n': 
+                    sb.append(' '); break;
+
+                /**
+                 * Carriage return: Texto\rBorra
+                 * Result: Borra
+                 * Borra smashed Texto bc it returned at the begining 
+                 */
+                case '\r': 
+
+                /**
+                 * Backspace: Holaa\b
+                 * Result: Hola
+                 * \b removed one "a" 
+                 */
+                case '\b': // Retroceso
+
+                /**
+                 * Form feed: Hoja1\fHoja2
+                 * Result: A physical printer would cut paper here 
+                 * and send "Hoja 2" to new page
+                 */
+                case '\f': 
+                    break;
+                default: 
+                
+                // Safely discard any other invisible ASCII control characters (0 to 31)
+                if (c < ' ') break;
+                sb.append(c); break;
+            }
+
+        }
+        
+        sb.append('"');
+
+        return sb.toString().trim();
+    }
+
+    private String formatMap(Map<?,?> map){
+        
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("{");
+
+        boolean first = true;
+        for (int i = 0; i < map.size(); i++) {
+            
+        }
+        
+        for(Entry<?,?> entry : map.entrySet()){
+
+            if(!first) sb.append(",");
+            sb.append("\n");
+            sb.append("  " + toJson(entry.getKey()));
+            sb.append(" : ");
+            sb.append(toJson(entry.getValue()));
+            first = false;
+        }
+
+        sb.append("\n}");
+
+        return sb.toString().trim();
+    }
 }
+
+
