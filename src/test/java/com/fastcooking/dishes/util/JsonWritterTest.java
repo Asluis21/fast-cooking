@@ -82,7 +82,7 @@ public class JsonWritterTest {
         Map<String, Object> mapObjects = new LinkedHashMap<>(){{
             put("key1", "value1");
             put("key2", 100);
-            put("key3", List.of(1, "Hola\tworld", true));
+            put("key3", List.of(1, "Hola\tworld"));
         }};
 
         assertEquals(
@@ -92,5 +92,34 @@ public class JsonWritterTest {
           "key2" : 100,
           "key3" : [1, "Hola world", true] 
         }""", jsonWriter.toJson(mapObjects));
+    }
+    
+    @Test 
+    void checkNestedMapInJson(){
+
+        Map<String, Object> mapObjects2 = new LinkedHashMap<>(){{
+            put("key5", "value5");
+            put("key6", 100);
+            put("key7", List.of(1, "Hola world", true));
+        }};
+        
+        Map<String, Object> mapObjects = new LinkedHashMap<>(){{
+            put("key1", "va\"lue1");
+            put("key2", 100);
+            put("key3", List.of(1, "Hola\tworld", true));
+            put("key4", mapObjects2);
+        }};
+
+        
+        assertEquals(
+        """ 
+        {
+          "key1" : "va\"lue1",
+          "key2" : 100,
+          "key3" : [1, "Hola\tworld", true],
+          "key4" : {
+          "key5" : "value5",
+          "key6" : 100,
+          "key7" : [1, "Hola world", true]}}""", jsonWriter.toJson(mapObjects));
     }
 }

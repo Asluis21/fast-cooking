@@ -2,7 +2,6 @@ package com.fastcooking.dishes.util;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -26,6 +25,10 @@ public class JsonWriter {
         if (element instanceof String text) {
             return formatString(text);
         }
+        
+        if (element instanceof Enum enumText) {
+            return formatString(enumText.toString());
+        }
 
         if(element instanceof Collection<?> elementCollection){
             return formatCollection(elementCollection);
@@ -34,6 +37,7 @@ public class JsonWriter {
         if(element.getClass().isArray()){
             return formatArray(element);
         }
+
 
         if(element instanceof Map<?,?> elementMap){
             return formatMap(elementMap);
@@ -98,16 +102,19 @@ public class JsonWriter {
             switch (c) {
                 
                 // Make coma character (") into a special symbol -> Name: \"Carlos
-                case '"': sb.append("\\\""); break;
+                case '"': 
+                    sb.append("\""); break;
                 
                 /** 
                  * Tab Name:\tCarlos
                  * Result:
                  * Name:    Carlos
                 */
-                case '\t':
-                
+                case '\t': 
+                    sb.append("\t"); break;
                 case '\\':
+                    sb.append("\\\\"); break;
+                
                 /**
                  * Line feed: "Hello\nWorld" 
                  * Result:
@@ -116,7 +123,7 @@ public class JsonWriter {
                  * 
                 */
                 case '\n': 
-                    sb.append(' '); break;
+                    sb.append("\\n"); break;
 
                 /**
                  * Carriage return: Texto\rBorra
@@ -124,26 +131,27 @@ public class JsonWriter {
                  * Borra smashed Texto bc it returned at the begining 
                  */
                 case '\r': 
-
+                    sb.append("\\r"); break;
                 /**
                  * Backspace: Holaa\b
                  * Result: Hola
                  * \b removed one "a" 
                  */
-                case '\b': // Retroceso
 
+                case '\b': // Retroceso
+                    sb.append("\\b"); break;
                 /**
                  * Form feed: Hoja1\fHoja2
                  * Result: A physical printer would cut paper here 
                  * and send "Hoja 2" to new page
                  */
                 case '\f': 
-                    break;
+                    sb.append("\\f"); break;
                 default: 
-                
                 // Safely discard any other invisible ASCII control characters (0 to 31)
-                if (c < ' ') break;
-                sb.append(c); break;
+                    if (c < ' ') sb.append(String.format("\\u%04x", (int)c));
+                    sb.append(c); 
+                break;                        
             }
 
         }
@@ -160,22 +168,18 @@ public class JsonWriter {
         sb.append("{");
 
         boolean first = true;
-        for (int i = 0; i < map.size(); i++) {
-            
-        }
         
         for(Entry<?,?> entry : map.entrySet()){
 
             if(!first) sb.append(",");
             sb.append("\n");
-            sb.append("  " + toJson(entry.getKey()));
+            sb.append("  " + formatString(String.valueOf(entry.getKey())));
             sb.append(" : ");
             sb.append(toJson(entry.getValue()));
             first = false;
         }
 
-        sb.append("\n}");
-
+        sb.append('}');
         return sb.toString().trim();
     }
 }
