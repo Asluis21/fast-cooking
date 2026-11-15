@@ -1,4 +1,4 @@
-package com.fastcooking.dishes.domain;
+package com.fastcooking.dishes.entity;
 
 import java.time.Duration;
 

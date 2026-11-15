@@ -1,4 +1,4 @@
-package com.fastcooking.dishes.domain;
+package com.fastcooking.dishes.entity;
 
 public class Ingredient {
     
