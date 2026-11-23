@@ -8,6 +8,7 @@ import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import com.fastcooking.dishes.filter.CorsFilter;
 import com.fastcooking.dishes.resource.DishResource;
 import com.fastcooking.dishes.service.DishServiceImpl;
 import com.fastcooking.dishes.util.AppBinder;
@@ -25,6 +26,7 @@ public class RestApplication {
         resourceConfig
             .register(dishResource)
             .register(JacksonFeature.class)
+            .register(CorsFilter.class)
             .register(new AppBinder());
 
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create(URL), resourceConfig);
